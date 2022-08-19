@@ -45,41 +45,30 @@ const commentController = {
       .catch(err => res.json(err));
   },
 
-  // get all comments
-  getAllPizzas(req, res) {
-    Pizza.find({})
-      .poopulate({
-        path: 'comments',
-        select: '-__v'
-      })
-      .select('-__v')
-      .sort({ _id: -1 })
-      .then(dbPizzaData => res.json(dbPizzaData))
-      .catch(err => {
-        console.log(err);
-        res.status(400).json(err);
-      })
-  },
-
-  // get one pizza by id
-  getPizzaById({ params }, res) {
-    Pizza.findOne({ _id: params.id })
-      .populate({
-        path: 'comments',
-        select: '-__v'
-      })
-      .select('-__v')
+  addReply({ params, body }, res) {
+    Comment.findOneAndUpdate(
+      { _id: params.commentId },
+      { $push: { replies: body } },
+      { new: true }
+    )
       .then(dbPizzaData => {
         if (!dbPizzaData) {
-          res.status(404).json({ message: 'No pizza under that id' });
+          res.status(404).json({ message: 'No pizza found with this id' })
           return;
         }
         res.json(dbPizzaData);
       })
-      .catch(err => {
-        onsole.log(err);
-        res.status(400).json(err);
-      })
+      .catch(err => res.json(err));
+  },
+
+  removeReply({ params }, res) {
+    Comment.findOneAndUpdate(
+      { _id: params.commentId },
+      { $push: { replies: { replyId: params.replyId } } },
+      { new: true }
+    )
+    .then(dbPizzaData => res.json(dbPizzaData))
+    .catch(err => res.json(err));
   }
 };
 
